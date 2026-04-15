@@ -307,4 +307,4 @@ export const questions = {
       answer: "Nagpapalakas ng pagkakaisa",
     },
   ],
-} as const;
+};

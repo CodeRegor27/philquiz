@@ -1,5 +1,5 @@
 import "./App.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { questions } from "../data/philQuizQuestions.tsx";
 import type { CategoryKey, QuestionType } from "../types/quiz";
 import { categories } from "../data/philQuizCategories.tsx";
@@ -14,7 +14,8 @@ function App() {
   const [selectedChoice, setSelectedChoice] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleCategoryClick = (key: CategoryKey) => {
+  // 🎯 LOAD QUESTION
+  const loadQuestion = (key: CategoryKey) => {
     const list = questions[key];
     const random = list[Math.floor(Math.random() * list.length)];
 
@@ -22,13 +23,33 @@ function App() {
     setQuestion(random);
     setSelectedChoice("");
     setIsSubmitted(false);
+
+    // clean URL after QR load
+    window.history.replaceState({}, "", "/");
   };
 
+  // 🖱️ CLICK CATEGORY
+  const handleCategoryClick = (key: CategoryKey) => {
+    loadQuestion(key);
+  };
+
+  // 📱 QR AUTO DETECT
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const category = params.get("category") as CategoryKey | null;
+
+    if (category && questions[category]) {
+      loadQuestion(category);
+    }
+  }, []);
+
+  // ✅ SUBMIT ANSWER
   const handleSubmit = () => {
     if (!question) return;
+
     setIsSubmitted(true);
 
-    // auto return to homepage after short delay
+    // auto return to homepage after delay
     setTimeout(() => {
       setSelectedCategory(null);
       setQuestion(null);
@@ -50,7 +71,7 @@ function App() {
           {categories.map((cat, index) => (
             <div
               key={index}
-              onClick={() => handleCategoryClick(cat.key)}
+              onClick={() => handleCategoryClick(cat.key as CategoryKey)}
               className="cursor-pointer"
             >
               <CategoryCard name={cat.name} icon={cat.icon} />
@@ -73,9 +94,9 @@ function App() {
 
               if (isSubmitted) {
                 if (isCorrect) {
-                  bgColor = "bg-green-400"; // correct answer
+                  bgColor = "bg-green-400"; // correct
                 } else if (isSelected && !isCorrect) {
-                  bgColor = "bg-red-400"; // wrong answer
+                  bgColor = "bg-red-400"; // wrong
                 }
               } else if (isSelected) {
                 bgColor = "bg-purple-300";
@@ -93,7 +114,7 @@ function App() {
             })}
           </div>
 
-          {/* SUBMIT BUTTON */}
+          {/* SUBMIT */}
           <button
             onClick={handleSubmit}
             disabled={!selectedChoice || isSubmitted}
